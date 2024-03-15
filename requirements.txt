@@ -1,4 +1,4 @@
 elasticsearch
 certifi
 requests
-json
+python-dotenv
