@@ -1,23 +1,24 @@
-#/usr/bin/python3
-
-# Author:	Thomas Brijs
-# Date:		03-12-2024
-# eLasticFM Scrobble Indexer
-
 from elasticsearch import Elasticsearch
+from dotenv import load_dotenv
 import datetime as dt
 import requests
 import certifi
 import json
 import time
+import os
+import logging
 
-LASTFM_API_KEY = 'your-lastfm-apikey'
+load_dotenv()
+
+LASTFM_API_KEY = os.getenv('LASTFM_API_KEY')
 LASTFM_USER_AGENT = 'Dataquest'
 LASTFM_HITS_PER_PAGE = 200
-LASTFM_USER = 'your-lastfm-username'
+LASTFM_USERNAME = 'YOUR-LASTFM-USER'
 
-ELASTIC_HOST = 'https://your-elastic-host:9200'
-ELASTIC_API_KEY = 'your-elastic-apikey'
+ELASTIC_HOST = 'https://your-elastic-endpoint:9200'
+ELASTIC_API_KEY = os.getenv('ELASTIC_API_KEY')
+
+logging.basicConfig(level=logging.DEBUG)
 
 client = Elasticsearch(
   ELASTIC_HOST,
@@ -35,6 +36,8 @@ def lastfm_get(payload):
     payload['api_key'] = LASTFM_API_KEY
     payload['format'] = 'json'
 
+    logging.debug('Payload: ', payload)
+
     response = requests.get(url, headers=headers, params=payload)
     return response.json()
 
@@ -46,11 +49,12 @@ while page <= total_pages:
 
     payload = {
         'method': 'user.getRecentTracks',
-        'user': LASTFM_USER,
+        'user': LASTFM_USERNAME,
         'limit': LASTFM_HITS_PER_PAGE,
         'page': page
     }
 
+#    print( lastfm_get(payload) )
     response = lastfm_get(payload)
 
     print( 'Page: ', page )
@@ -68,17 +72,19 @@ while page <= total_pages:
         source = {
             "artist": artist,
             "title": title,
-            "album": album, 
+            "album": album,
+            "user": LASTFM_USERNAME,
             "@timestamp": timestamp
         }
 
         client.index(index='search-lastfm', document=source)
         entry += 1
-#   TODO: Use bulk create
-#   client.bulk(operations=documents, pipeline="ent-search-generic-ingestion")
-    time.sleep(3)
 
-    #  update page counts
+    # TODO: Use bulk update to insert multiple docs in 1 call
+    #client.bulk(operations=json.loads(json.dumps(doc)), pipeline="ent-search-generic-ingestion")
+
+    time.sleep(3)
+    # extract pagination info
     page = int(response['recenttracks']['@attr']['page'])
     total_pages = int(response['recenttracks']['@attr']['totalPages'])
 
@@ -88,3 +94,5 @@ while page <= total_pages:
     page+=1
 
 print(responses)
+
+#client.bulk(operations=documents, pipeline="ent-search-generic-ingestion")
