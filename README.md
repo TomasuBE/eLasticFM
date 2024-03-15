@@ -5,11 +5,28 @@ Index all scrobbles into elasticsearch via Last.FM API
 
 # Setup
 
+## Set your Last.FM user and Elasticsearch endpoint in elasticfm.py
+
+```
+LASTFM_USERNAME = 'YOUR-LASTFM-USER'
+ELASTIC_HOST = 'https://your-elastic-endpoint:9200'
+```
+
+##Create a .env file with following parameters
+
+```
+LASTFM_API_KEY = 'your-lastfm-apikey'
+ELASTIC_API_KEY = 'your-elastic-apikey'
+```
+
+## Setup Virtual Environment
+
 ```
 python -m venv venv
+source venv/bin/activate
 pip3 install -r requirements
 #optional: include local CA to certifi bundle, if no cabundle with local CA present)
-cat /usr/local/share/ca-certificates/myCA.crt >> venv/lib/python3.11/site-packages/certifi/cacert.pem
+#cat /usr/local/share/ca-certificates/myCA.crt >> venv/lib/python3.11/site-packages/certifi/cacert.pem
 ```
 Make sure your API Key user has the correct permissions on the  index
 
