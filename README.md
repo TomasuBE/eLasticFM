@@ -38,10 +38,6 @@ PUT lastfm
 
 ```
 LASTFM_API_KEY = 'your-lastfm-apikey'
-LASTFM_USER_AGENT = 'Dataquest'
-LASTFM_HITS_PER_PAGE = 200
-
-ELASTIC_HOST = 'https://your-elastic-endpoint:9200'
 ELASTIC_API_KEY = 'your-elastic-apikey'
 ```
 
