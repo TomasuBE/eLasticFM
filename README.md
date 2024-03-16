@@ -5,17 +5,43 @@ Index all scrobbles into elasticsearch via Last.FM API
 
 # Setup
 
-## Set your Last.FM user and Elasticsearch endpoint in elasticfm.py
+## Create a mapping for the index template
 
 ```
-LASTFM_USERNAME = 'YOUR-LASTFM-USER'
-ELASTIC_HOST = 'https://your-elastic-endpoint:9200'
+{
+  "mappings": {
+    "properties": {
+      "album": {
+        "type": "keyword"
+      },
+      "artist": {
+        "type": "keyword"
+      },
+      "title": {
+        "type": "keyword"
+      },
+      "user": {
+        "type": "keyword"
+      }
+    }
+  }
+}
 ```
 
-##Create a .env file with following parameters
+Add the index name (ie lastfm) to the index pattern for the template.
+Create the index:
+```
+PUT lastfm
+
+
+## Create a .env file with following parameters
 
 ```
 LASTFM_API_KEY = 'your-lastfm-apikey'
+LASTFM_USER_AGENT = 'Dataquest'
+LASTFM_HITS_PER_PAGE = 200
+
+ELASTIC_HOST = 'https://your-elastic-endpoint:9200'
 ELASTIC_API_KEY = 'your-elastic-apikey'
 ```
 
@@ -29,6 +55,14 @@ pip3 install -r requirements
 #cat /usr/local/share/ca-certificates/myCA.crt >> venv/lib/python3.11/site-packages/certifi/cacert.pem
 ```
 Make sure your API Key user has the correct permissions on the  index
+
+## Usage
+
+```
+(venv) ~# python3 elasticfm.py
+```
+
+or set it as a periodic cron job to regularly update the index.
 
 # Credit
 
