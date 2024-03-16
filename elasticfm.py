@@ -13,19 +13,27 @@ load_dotenv()
 LASTFM_API_KEY = os.getenv('LASTFM_API_KEY')
 LASTFM_USER_AGENT = 'Dataquest'
 LASTFM_HITS_PER_PAGE = 200
-LASTFM_USERNAME = 'YOUR-LASTFM-USER'
+LASTFM_USERNAME = 'your-lastfm-user'
 
 ELASTIC_HOST = 'https://your-elastic-endpoint:9200'
 ELASTIC_API_KEY = os.getenv('ELASTIC_API_KEY')
 
 logging.basicConfig(level=logging.DEBUG)
 
+first_time = False
+
 client = Elasticsearch(
   ELASTIC_HOST,
   api_key=ELASTIC_API_KEY
 )
 
-#print( client.info() )
+logging.debug( client.info() )
+try:
+    resp = client.search(index="lastfm", query={"match_all": {}}, size=1, sort="@timestamp:desc")
+    last_scrobble = dt.datetime.fromisoformat(resp['hits']['hits'][0]['_source']['@timestamp'])
+    logging.debug( last_scrobble )
+except:
+    first_time = True
 
 def lastfm_get(payload):
     # define headers and URL
@@ -54,16 +62,21 @@ while page <= total_pages:
         'page': page
     }
 
-#    print( lastfm_get(payload) )
     response = lastfm_get(payload)
-
-    print( 'Page: ', page )
+#    logging.debug('Response: ', json.dumps(response))
     entry = 0
     documents = []
     sources = []
     while entry <= LASTFM_HITS_PER_PAGE - 1:
         timestamp = int(response['recenttracks']['track'][entry]['date']['uts'])
-        timestamp = dt.datetime.utcfromtimestamp(timestamp).isoformat()
+        timestamp = dt.datetime.utcfromtimestamp(timestamp)
+        if not first_time:
+            logging.debug( 'Updating' )
+            if timestamp <= last_scrobble:
+                logging.info('Up to date.')
+                break
+
+        timestamp = timestamp.isoformat()
         artist = response['recenttracks']['track'][entry]['artist']['#text']
         title = response['recenttracks']['track'][entry]['name']
         album = response['recenttracks']['track'][entry]['album']['#text']
@@ -77,11 +90,16 @@ while page <= total_pages:
             "@timestamp": timestamp
         }
 
-        client.index(index='search-lastfm', document=source)
+        client.index(index='lastfm', document=source)
+
         entry += 1
 
     # TODO: Use bulk update to insert multiple docs in 1 call
-    #client.bulk(operations=json.loads(json.dumps(doc)), pipeline="ent-search-generic-ingestion")
+    #client.bulk(operations=json.loads(json.dumps(doc)), index="search-lastfm")
+
+    if timestamp <= last_scrobble:
+        logging.info('Exiting')
+        break
 
     time.sleep(3)
     # extract pagination info
@@ -93,6 +111,4 @@ while page <= total_pages:
 
     page+=1
 
-print(responses)
-
-#client.bulk(operations=documents, pipeline="ent-search-generic-ingestion")
+logging.info('Finished')
