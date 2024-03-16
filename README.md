@@ -32,7 +32,7 @@ Add the index name (ie lastfm) to the index pattern for the template.
 Create the index:
 ```
 PUT lastfm
-
+```
 
 ## Create a .env file with following parameters
 
