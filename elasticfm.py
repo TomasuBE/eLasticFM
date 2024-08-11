@@ -18,7 +18,7 @@ LASTFM_USERNAME = os.getenv('LASTFM_USER')
 ELASTIC_HOST = os.getenv('ELASTIC_ENDPOINT')
 ELASTIC_API_KEY = os.getenv('ELASTIC_API_KEY')
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 first_time = False
 
@@ -63,7 +63,7 @@ while page <= total_pages:
     }
 
     response = lastfm_get(payload)
-#    logging.debug('Response: ', json.dumps(response))
+    logging.debug('Response: ', json.dumps(response))
     entry = 0
     documents = []
     sources = []
