@@ -1,4 +1,4 @@
-![image eLasticFM](https://raw.githubusercontent.com/TomasuBE/eLasticFM/main/elasticfm-logo.png)
+![eLasticFM](https://github.com/TomasuBE/eLasticFM/blob/master/elasticfm-logo.png)
 
 # eLasticFM
 Index all scrobbles into elasticsearch via Last.FM API
